@@ -1,108 +1,48 @@
-# WinMaccy —— Windows 上的 Maccy 风格剪贴板历史
+# WinMaccy
 
-轻量、开源、纯本地的剪贴板历史管理器。用全局快捷键随时呼出搜索框，找到以前复制过的文本、图片或文件，回车即可粘贴。参考 macOS 上的开源软件 [Maccy](https://maccy.app)（github.com/p0deje/Maccy）设计，使用 C# / WPF / .NET 8 原生实现，**无任何第三方依赖、不联网**。
+Windows 上的 [Maccy](https://github.com/p0deje/Maccy) 风格剪贴板历史管理器。轻量、开源、纯本地、不联网，C# / WPF / .NET 8 原生实现，零第三方依赖。
 
-## 系统要求
+**下载**：见 [Releases](https://github.com/zhuba-Ahhh/WinMaccy/releases)，解压即用（自包含单文件，免装运行时）。
 
-- Windows 10 1809 (17763) 及以上 / Windows 11，64 位
-- Release 页面提供**自包含单文件**（约 140 MB，内置 .NET 8 运行时），无需安装 .NET，解压即用
+## 使用
 
-## 快速上手
+默认快捷键 **Ctrl + Shift + C** 呼出搜索窗，输入即过滤，回车粘贴。
 
-1. 双击 `WinMaccy.exe` 运行（首次启动会在系统托盘显示图标并弹出气泡提示）。
-2. 在任意程序里复制内容，WinMaccy 自动记录。
-3. 按 **Ctrl + Shift + C** 呼出历史窗口，直接输入关键词即时过滤。
-4. **回车**：选中项写回剪贴板并自动粘贴到当前窗口（可在设置中关闭自动粘贴）。
-5. 双击托盘图标同样可以呼出窗口；右键托盘图标可暂停记录、忽略下一次复制、清空历史或退出。
-
-## 快捷键
-
-| 操作 | 快捷键 |
+| 快捷键 | 功能 |
 | --- | --- |
-| 呼出/隐藏历史窗口 | `Ctrl + Shift + C`（可在设置中自定义） |
-| 粘贴选中项 | `Enter` |
-| 仅复制不粘贴 | `Shift + Enter` |
-| 以纯文本粘贴（去除富文本格式） | `Ctrl + Enter` |
-| 快速选择第 N 项 | `Ctrl + 1` … `Ctrl + 9` |
-| 置顶/取消置顶（pin） | `Alt + P` |
-| 删除选中项 | `Delete` |
-| 上下移动选择 | `↑` / `↓` |
-| 关闭窗口 | `Esc` 或点击窗口外任意处 |
+| `Enter` | 复制并自动粘贴 |
+| `Shift+Enter` | 仅复制 |
+| `Ctrl+Enter` | 纯文本粘贴 |
+| `Ctrl+1..9` | 快速选择 |
+| `Alt+P` | 置顶 / 取消置顶 |
+| `Delete` | 删除该项 |
+| `Esc` / 点击外部 | 关闭 |
 
-置顶项会固定在列表最前面、永久保留（清空历史时默认保留置顶项），与 Maccy 的 pin 行为一致。
+- 记录内容：文本、HTML/RTF 富文本、图片、文件（资源管理器复制）
+- 相同内容自动去重；置顶项永久保留在顶部
+- 托盘菜单：暂停记录、忽略下一次复制、清空历史、设置
+- 设置：热键录制、自动粘贴、开机自启、主题（浅/深/跟随系统）、历史上限、图片上限、按应用忽略
 
-## 记录的内容类型
+## 数据与隐私
 
-- 纯文本与富文本（HTML / RTF，粘贴时可保留格式，也可用 Ctrl+Enter 纯文本粘贴）
-- 图片（位图复制，自动以 PNG 保存，默认单张上限 10 MB，可在设置调整 1–100 MB）
-- 文件与文件夹（在资源管理器中复制的文件，粘贴为文件拖放对象）
-- 相同内容按哈希自动去重，重复复制只会把该条提到最前
+- 默认存 `%APPDATA%\WinMaccy\`（`history.json`、`settings.json`、`images\`）
+- 在 exe 旁建 `data\` 文件夹即切换为便携模式
+- 排障：设环境变量 `WINMACCY_DEBUG=1`，日志写在数据目录 `debug.log`
 
-## 设置
+要求 Windows 10 1809+ / Windows 11 x64。
 
-托盘菜单选择"设置…"，可配置：
+## 构建
 
-- **全局快捷键**：点击按钮后直接按下想要的组合键即可（需含至少一个 Ctrl/Alt/Shift/Win 修饰键）
-- **自动粘贴**：关闭后回车只复制不粘贴
-- **开机自启**：写入当前用户注册表 `HKCU\...\Run`，以 `--minimized` 静默启动
-- **主题**：跟随系统 / 浅色 / 深色
-- **历史条数上限**（默认 200，范围 10–10000，超出后自动清理最旧的非置顶项）
-- **是否记录图片 / 文件**、**图片大小上限**
-- **清空历史**：可选择保留或连同置顶项一起清空
-- **忽略的应用**：逗号/分号/换行分隔的进程名列表（如 `1Password.exe, KeePass.exe`），在这些应用前台时复制的内容不会被记录
-
-其他启动参数：`WinMaccy.exe --minimized`（静默启动）、`WinMaccy.exe --settings`（直接打开设置）。
-
-## 隐私与数据位置
-
-- 所有数据只保存在本机，程序不发起任何网络请求。
-- 默认数据目录：`%APPDATA%\WinMaccy\`
-  - `history.json` / `settings.json`：历史记录与设置
-  - `images\`：复制的图片（PNG）
-- **便携模式**：在 `WinMaccy.exe` 同目录下新建一个名为 `data` 的文件夹，程序即改为把所有数据写入 `data\`（迁移到其他电脑时连同该文件夹复制即可）。
-- 卸载：退出程序后删除 exe 与数据目录即可；若开启过开机自启，先在设置里关闭（会自动清理注册表项）。
-
-## 排障
-
-- 按快捷键无反应：可能被其他程序占用（全局热键先到先得），在设置里换一个组合键；注册失败时设置保存会弹出提示。
-- 需要诊断日志时，设置环境变量 `WINMACCY_DEBUG=1` 后启动，日志写在数据目录的 `debug.log`。
-
-## 从源码构建
-
-需要 [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)（Windows），无第三方 NuGet 依赖：
+需 [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)：
 
 ```powershell
-# 调试构建
-dotnet build src/WinMaccy/WinMaccy.csproj -c Debug
-
-# 发布自包含单文件（产物在 publish\WinMaccy.exe）
 dotnet publish src/WinMaccy/WinMaccy.csproj -c Release -r win-x64 `
   --self-contained true -p:PublishSingleFile=true `
   -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
-推送 `v*` 标签时 GitHub Actions 会自动构建并发布 Release（见 `.github/workflows/build.yml`）。
-
-## 仓库结构
-
-```
-WinMaccy/
-├─ src/WinMaccy/
-│  ├─ App.xaml(.cs)        # 组合根：单实例、托盘、热键/剪贴板事件装配
-│  ├─ Models/              # ClipItem / AppSettings / HotKeyConfig 等数据模型
-│  ├─ Storage/             # JSON 存储、便携模式路径、历史去重与裁剪
-│  ├─ Services/            # 剪贴板捕获、粘贴模拟、搜索、主题、开机自启
-│  ├─ Interop/             # Win32 P/Invoke 与隐藏消息窗口
-│  ├─ UI/                  # PopupWindow（搜索浮窗）与 SettingsWindow
-│  ├─ Themes/              # 浅色 / 深色资源字典
-│  ├─ Converters/          # WPF 值转换器
-│  └─ Assets/app.ico
-├─ .github/workflows/      # CI：构建 + 标签发布 Release
-├─ WinMaccy.sln
-├─ LICENSE                 # MIT
-└─ README.md
-```
+推 `v*` 标签会触发 GitHub Actions 自动发布 Release。
 
 ## License
 
-[MIT](LICENSE)。本项目参考了开源软件 [Maccy](https://github.com/p0deje/Maccy)（MIT）的交互设计。
+[MIT](LICENSE)。交互设计致敬 macOS 上的开源软件 Maccy。
