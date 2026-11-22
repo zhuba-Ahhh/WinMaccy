@@ -2,12 +2,12 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Color x:Key="AccentColor">#2F6FED</Color>
     <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F3F3F6" />
-    <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="ItemHoverBrush" Color="#E9ECF3" />
-    <SolidColorBrush x:Key="ItemSelectedBrush" Color="#DDE7FE" />
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B1D22" />
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#F5F8FE" />
+    <SolidColorBrush x:Key="ItemHoverBrush" Color="#EEF3FD" />
+    <SolidColorBrush x:Key="ItemSelectedBrush" Color="#E1EBFD" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B2433" />
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B7280" />
-    <SolidColorBrush x:Key="BorderSubtleBrush" Color="#E2E5EC" />
+    <SolidColorBrush x:Key="BorderSubtleBrush" Color="#E7ECF4" />
     <SolidColorBrush x:Key="PinnedBadgeBrush" Color="#F59E0B" />
 </ResourceDictionary>
