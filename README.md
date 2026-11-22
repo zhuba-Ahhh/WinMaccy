@@ -8,6 +8,8 @@ Windows 上的 [Maccy](https://github.com/p0deje/Maccy) 风格剪贴板历史管
 
 <sub>演示为 AI 概念动画，高清 MP4 见 Release 附件 `winmaccy-demo.mp4`。</sub>
 
+> **关于"Windows 已保护你的电脑"（SmartScreen）**：本软件开源且完全离线，但 exe 未购买商业代码签名证书（个人开发者成本较高），新文件尚无信誉。点击弹窗中的 **"更多信息" → "仍要运行"** 即可；或在文件属性中解除锁定。随着下载量增加该提示会逐渐消失。源码可自行审查与编译。
+
 ## 使用
 
 默认快捷键 **Ctrl + Shift + C** 呼出搜索窗，输入即过滤，回车粘贴。
