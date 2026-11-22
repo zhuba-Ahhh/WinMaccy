@@ -1,0 +1,194 @@
+<Window x:Class="WinMaccy.UI.PopupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:WinMaccy.Converters"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        Width="720"
+        SizeToContent="Height"
+        MinHeight="120"
+        MaxHeight="640"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal">
+    <Window.Resources>
+        <conv:KindGlyphConverter x:Key="KindGlyph" />
+        <conv:MetaConverter x:Key="Meta" />
+        <conv:ThumbnailConverter x:Key="Thumb" />
+        <conv:BadgeVisibilityConverter x:Key="BadgeVis" />
+        <conv:BadgeTextConverter x:Key="BadgeText" />
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="Margin" Value="0,0,4,0" />
+        </Style>
+
+        <Style x:Key="PopupListItem" TargetType="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd" CornerRadius="8" Margin="6,1"
+                                Background="Transparent" Padding="8,6">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ItemHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ItemSelectedBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Margin="12" CornerRadius="12" Background="{DynamicResource WindowBackgroundBrush}"
+            BorderThickness="1" BorderBrush="{DynamicResource BorderSubtleBrush}">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="0" Opacity="0.35" Color="Black" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Search bar -->
+            <Grid Grid.Row="0" Margin="14,12,14,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="&#xE721;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                           FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}"
+                           VerticalAlignment="Center" Margin="2,0,10,0" />
+                <TextBox x:Name="SearchBox" Grid.Column="1" BorderThickness="0" Background="Transparent"
+                         CaretBrush="{DynamicResource TextPrimaryBrush}"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         FontSize="16" VerticalAlignment="Center" Padding="0"
+                         PreviewKeyDown="SearchBox_PreviewKeyDown"
+                         TextChanged="SearchBox_TextChanged">
+                    <TextBox.Template>
+                        <ControlTemplate TargetType="TextBox">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden" />
+                        </ControlTemplate>
+                    </TextBox.Template>
+                </TextBox>
+            </Grid>
+
+            <!-- Results -->
+            <Grid Grid.Row="1">
+                <ListBox x:Name="ResultsList" BorderThickness="0" Background="Transparent"
+                         ItemContainerStyle="{StaticResource PopupListItem}"
+                         AlternationCount="100"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         MouseLeftButtonUp="ResultsList_MouseLeftButtonUp"
+                         PreviewMouseDoubleClick="ResultsList_PreviewMouseDoubleClick"
+                         SelectionChanged="ResultsList_SelectionChanged">
+                    <ListBox.Resources>
+                        <Style TargetType="ScrollBar">
+                            <Setter Property="Width" Value="8" />
+                        </Style>
+                    </ListBox.Resources>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Height="48" ToolTip="{Binding Preview}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="40" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="26" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- thumbnail or kind glyph -->
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6"
+                                        Background="{DynamicResource SurfaceBrush}"
+                                        BorderThickness="1" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        ClipToBounds="True" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                    <Grid>
+                                        <TextBlock Text="{Binding Converter={StaticResource KindGlyph}}"
+                                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                   FontSize="16" Foreground="{DynamicResource AccentBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Image Source="{Binding Converter={StaticResource Thumb}}"
+                                               Stretch="UniformToFill" />
+                                    </Grid>
+                                </Border>
+
+                                <!-- texts -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,6,0">
+                                    <TextBlock Text="{Binding Preview}" FontSize="13.5"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               TextTrimming="CharacterEllipsis" MaxHeight="20" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                        <!-- pin marker -->
+                                        <TextBlock Text="&#xE718;" FontSize="10"
+                                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                   Foreground="{DynamicResource PinnedBadgeBrush}"
+                                                   VerticalAlignment="Center" Margin="0,0,6,0"
+                                                   Visibility="{Binding Pinned, Converter={StaticResource BoolToVis}}" />
+                                        <TextBlock Text="{Binding Converter={StaticResource Meta}}" FontSize="11"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Ctrl+N badge -->
+                                <Border Grid.Column="2" Width="22" Height="18" CornerRadius="4"
+                                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                                        Background="{DynamicResource SurfaceBrush}"
+                                        BorderThickness="1" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        Visibility="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem},
+                                            Converter={StaticResource BadgeVis}}">
+                                    <TextBlock FontSize="10.5" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Text="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem},
+                                            Converter={StaticResource BadgeText}}" />
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- empty state -->
+                <StackPanel x:Name="EmptyState" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="Collapsed" Margin="0,24">
+                    <TextBlock Text="&#xE8C8;" FontSize="30" TextAlignment="Center"
+                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock x:Name="EmptyText" Text="暂无历史记录" Margin="0,10,0,0"
+                               FontSize="13" TextAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- footer hints -->
+            <Border Grid.Row="2" BorderThickness="0,1,0,0"
+                    BorderBrush="{DynamicResource BorderSubtleBrush}" Padding="14,7">
+                <WrapPanel>
+                    <TextBlock Style="{StaticResource Hint}" Text="Enter 粘贴   " />
+                    <TextBlock Style="{StaticResource Hint}" Text="Shift+Enter 仅复制   " />
+                    <TextBlock Style="{StaticResource Hint}" Text="Ctrl+Enter 纯文本   " />
+                    <TextBlock Style="{StaticResource Hint}" Text="Alt+P 固定   " />
+                    <TextBlock Style="{StaticResource Hint}" Text="Del 删除   " />
+                    <TextBlock Style="{StaticResource Hint}" Text="Ctrl+1..9 快捷选择   " />
+                    <TextBlock Style="{StaticResource Hint}" Text="Esc 关闭" />
+                </WrapPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

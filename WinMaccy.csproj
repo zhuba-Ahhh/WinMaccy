@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <AssemblyName>WinMaccy</AssemblyName>
+    <RootNamespace>WinMaccy</RootNamespace>
+    <Version>1.0.0</Version>
+    <Product>WinMaccy</Product>
+    <AssemblyTitle>WinMaccy - Clipboard history for Windows</AssemblyTitle>
+    <SatelliteResourceLanguages>zh-Hans;en</SatelliteResourceLanguages>
+    <!-- DPI awareness is emitted by the WinForms SDK target instead of app.manifest (WFAC010). -->
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+</Project>
