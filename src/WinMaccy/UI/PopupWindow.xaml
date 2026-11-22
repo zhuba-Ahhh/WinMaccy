@@ -67,16 +67,24 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="Bd" CornerRadius="8" Margin="6,1"
-                                Background="Transparent" Padding="10,7">
-                            <ContentPresenter />
-                        </Border>
+                        <Grid Margin="6,1">
+                            <Border x:Name="Bd" CornerRadius="8"
+                                    Background="Transparent" Padding="10,7">
+                                <ContentPresenter />
+                            </Border>
+                            <!-- selection accent bar (matches the design reference) -->
+                            <Border x:Name="Accent" Width="3" Height="22" CornerRadius="2"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    Margin="1,0,0,0" Opacity="0"
+                                    Background="{DynamicResource AccentBrush}" />
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ItemHoverBrush}" />
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ItemSelectedBrush}" />
+                                <Setter TargetName="Accent" Property="Opacity" Value="1" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
