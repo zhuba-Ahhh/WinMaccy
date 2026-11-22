@@ -6,6 +6,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WinMaccy.Models;
+using WinMaccy.Services;
 using WinMaccy.Storage;
 
 namespace WinMaccy.Converters;
@@ -39,7 +40,10 @@ public sealed class MetaConverter : IValueConverter
             ClipKind.RichText => "富文本",
             _ => (item.Text?.Length ?? 0) + " 字符"
         };
-        return main + "  ·  " + TimeAgo(item.LastUsedAt);
+        var parts = new List<string> { main };
+        if (!string.IsNullOrWhiteSpace(item.SourceApp)) parts.Add(item.SourceApp!);
+        parts.Add(TimeAgo(item.LastUsedAt));
+        return string.Join("  ·  ", parts);
     }
 
     private static string TimeAgo(DateTimeOffset t)
@@ -87,6 +91,29 @@ public sealed class ThumbnailConverter : IValueConverter
         => throw new NotSupportedException();
 }
 
+/// <summary>ClipItem → source application icon (cached); image items / unknown source → null.</summary>
+public sealed class AppIconConverter : IValueConverter
+{
+    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not ClipItem { Kind: not ClipKind.Image, SourcePath: { } path }) return null;
+        return AppInfoService.GetIcon(path);
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>bool → Visibility, inverted (true hides). Used to swap badge ↔ hover actions.</summary>
+public sealed class InverseBoolToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        => value is true ? Visibility.Collapsed : Visibility.Visible;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 /// <summary>
 /// Badge converters take the ListBoxItem container and resolve its live position in the
 /// (possibly filtered) item generator, so the shown number always matches Ctrl+1..9.
@@ -109,6 +136,20 @@ public sealed class BadgeVisibilityConverter : IValueConverter
         => BadgeIndex.FromContainer(value) is >= 0 and <= 8 ? Visibility.Visible : Visibility.Collapsed;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>[container, isMouseOver] → badge Visibility: top 9 rows unless hover actions are shown.</summary>
+public sealed class BadgeShowConverter : IMultiValueConverter
+{
+    public object Convert(object?[] values, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (values.Length > 1 && values[1] is true) return Visibility.Collapsed;
+        return values.Length > 0 && BadgeIndex.FromContainer(values[0]) is >= 0 and <= 8
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
 

@@ -95,8 +95,8 @@ public sealed class ClipboardCaptureService
         }
 
         var settings = _settings.Current;
-        if (settings.IgnoredApps.Count > 0 && TryGetForegroundProcess(out var proc)
-            && settings.IgnoredApps.Contains(proc, StringComparer.OrdinalIgnoreCase))
+        var source = AppInfoService.GetForegroundApp();
+        if (settings.IgnoredApps.Count > 0 && IsIgnored(settings.IgnoredApps, source))
         {
             return;
         }
@@ -104,7 +104,7 @@ public sealed class ClipboardCaptureService
         ClipItem? item;
         try
         {
-            item = await Task.Run(() => BuildItem(data, settings)).ConfigureAwait(true);
+            item = await Task.Run(() => BuildItem(data, settings, source.Name, source.ExePath)).ConfigureAwait(true);
         }
         catch { item = null; }
         if (item is null) { App.Log("capture: BuildItem returned null (unsupported/empty)"); return; }
@@ -114,25 +114,26 @@ public sealed class ClipboardCaptureService
         HistoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private static bool TryGetForegroundProcess(out string name)
+    private static bool IsIgnored(List<string> ignored, AppInfoService.AppInfo source)
     {
-        name = string.Empty;
+        // Match either the friendly product name or exe file name, e.g. "chrome" / "Google Chrome".
+        string? procName = null;
         try
         {
-            var hwnd = NativeMethods.GetForegroundWindow();
-            if (hwnd == IntPtr.Zero) return false;
-            NativeMethods.GetWindowThreadProcessId(hwnd, out var pid);
-            if (pid == 0) return false;
-            using var p = System.Diagnostics.Process.GetProcessById((int)pid);
-            name = p.ProcessName;
-            return true;
+            if (!string.IsNullOrEmpty(source.ExePath))
+                procName = Path.GetFileNameWithoutExtension(source.ExePath);
         }
-        catch { return false; }
+        catch { }
+        return Contains(ignored, source.Name) || Contains(ignored, procName);
+
+        static bool Contains(List<string> list, string? name)
+            => !string.IsNullOrEmpty(name) && list.Contains(name, StringComparer.OrdinalIgnoreCase);
     }
 
     // Runs on a background thread. The IDataObject handed across was already
     // marshalled by WPF's Clipboard class and exposes plain string/BitmapSource data.
-    private ClipItem? BuildItem(System.Windows.IDataObject data, AppSettings settings)
+    private ClipItem? BuildItem(System.Windows.IDataObject data, AppSettings settings,
+        string? sourceName, string? sourcePath)
     {
         // 1) Files
         if (settings.CaptureFiles && data.GetDataPresent(DataFormats.FileDrop)
@@ -144,7 +145,8 @@ public sealed class ClipboardCaptureService
                 Paths = paths.ToList(),
                 Preview = BuildFilesPreview(paths),
                 Hash = ContentHasher.ComputePaths(paths),
-                SourceApp = null
+                SourceApp = sourceName,
+                SourcePath = sourcePath
             };
         }
 
@@ -164,7 +166,9 @@ public sealed class ClipboardCaptureService
                 Preview = string.IsNullOrWhiteSpace(text)
                     ? $"图片  {bmp.PixelWidth}×{bmp.PixelHeight}"
                     : TextPreview.Create(text),
-                Hash = "IMG:" + HashFile(StoragePaths.ResolveImage(imageRef))
+                Hash = "IMG:" + HashFile(StoragePaths.ResolveImage(imageRef)),
+                SourceApp = sourceName,
+                SourcePath = sourcePath
             };
         }
 
@@ -182,7 +186,9 @@ public sealed class ClipboardCaptureService
             Html = html,
             Rtf = rtf,
             Preview = TextPreview.Create(plain),
-            Hash = ContentHasher.Compute(kind.ToString(), plain, rtf)
+            Hash = ContentHasher.Compute(kind.ToString(), plain, rtf),
+            SourceApp = sourceName,
+            SourcePath = sourcePath
         };
     }
 

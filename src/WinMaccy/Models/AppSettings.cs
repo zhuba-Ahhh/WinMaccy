@@ -26,4 +26,7 @@ public sealed class AppSettings
 
     /// <summary>Reject images larger than this many megabytes.</summary>
     public int MaxImageMb { get; set; } = 10;
+
+    /// <summary>Maccy "showFooter": keyboard-shortcut hint bar at the bottom of the popup.</summary>
+    public bool ShowFooter { get; set; } = true;
 }

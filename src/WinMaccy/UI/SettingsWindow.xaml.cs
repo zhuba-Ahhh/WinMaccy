@@ -37,6 +37,7 @@ public partial class SettingsWindow : Window
         var s = _settings.Current;
         ChkAutoPaste.IsChecked = s.AutoPaste;
         ChkStartWithWindows.IsChecked = AutoStartService.IsEnabled();
+        ChkShowFooter.IsChecked = s.ShowFooter;
         ChkCaptureImages.IsChecked = s.CaptureImages;
         ChkCaptureFiles.IsChecked = s.CaptureFiles;
         MaxItemsBox.Text = s.MaxItems.ToString();
@@ -108,6 +109,7 @@ public partial class SettingsWindow : Window
         {
             s.AutoPaste = ChkAutoPaste.IsChecked == true;
             s.StartWithWindows = autoStart;
+            s.ShowFooter = ChkShowFooter.IsChecked == true;
             s.CaptureImages = ChkCaptureImages.IsChecked == true;
             s.CaptureFiles = ChkCaptureFiles.IsChecked == true;
             s.MaxItems = maxItems;

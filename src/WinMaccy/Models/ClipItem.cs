@@ -33,7 +33,12 @@ public sealed class ClipItem
     /// <summary>Content hash used for de-duplication / re-promotion.</summary>
     public string Hash { get; set; } = string.Empty;
 
+    /// <summary>Friendly source application name (e.g. "Google Chrome"), if known.</summary>
     public string? SourceApp { get; set; }
+
+    /// <summary>Full path of the source process executable, used to render its icon.</summary>
+    public string? SourcePath { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
     public DateTimeOffset LastUsedAt { get; set; } = DateTimeOffset.Now;
     public DateTimeOffset? PinnedAt { get; set; }

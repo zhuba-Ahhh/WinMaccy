@@ -92,7 +92,13 @@ public partial class App : System.Windows.Application
 
         _tray = new TrayIconService(
             settings: _settings,
+            history: _history,
             onOpen: OpenPopup,
+            onRecent: item =>
+            {
+                _history.Touch(item.Id);
+                _paste.Apply(item, paste: false, plainTextOnly: false);
+            },
             onIgnoreNext: () =>
             {
                 _capture.SuppressNext = true;

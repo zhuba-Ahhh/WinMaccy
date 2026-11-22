@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using WinMaccy.Models;
@@ -13,7 +12,7 @@ using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 namespace WinMaccy.UI;
 
 /// <summary>
-/// The Maccy-style popup: search box on top, result list, shortcut footer.
+/// The Maccy-style popup: search box on top, ranked result list, shortcut footer.
 /// Opened with the global hotkey, dismissed on Esc / deactivation.
 /// </summary>
 public partial class PopupWindow : Window
@@ -22,7 +21,7 @@ public partial class PopupWindow : Window
     private readonly PasteService _paste;
     private readonly AppSettings _settings;
     private readonly ObservableCollection<ClipItem> _items = new();
-    private readonly ListCollectionView _view;
+    private List<ClipItem> _all = new();
 
     /// <summary>Foreground window captured before the popup steals focus (paste target).</summary>
     private IntPtr _restoreTarget;
@@ -35,9 +34,6 @@ public partial class PopupWindow : Window
         InitializeComponent();
 
         ResultsList.ItemsSource = _items;
-        _view = (ListCollectionView)CollectionViewSource.GetDefaultView(_items);
-        _view.Filter = FilterItem;
-
         SourceInitialized += OnSourceInitialized;
     }
 
@@ -49,7 +45,7 @@ public partial class PopupWindow : Window
 
         Reload();
         SearchBox.Text = string.Empty;
-        _view.Filter = FilterItem;
+        FooterBorder.Visibility = _settings.ShowFooter ? Visibility.Visible : Visibility.Collapsed;
 
         Show();
         Activate();
@@ -60,18 +56,23 @@ public partial class PopupWindow : Window
 
     private void Reload()
     {
-        _items.Clear();
-        foreach (var it in _history.Snapshot()) _items.Add(it);
-        var hasAny = _items.Count > 0;
-        EmptyState.Visibility = hasAny ? Visibility.Collapsed : Visibility.Visible;
-        ResultsList.Visibility = hasAny ? Visibility.Visible : Visibility.Collapsed;
+        _all = _history.Snapshot().ToList();
+        ApplyQuery(SearchBox.Text);
     }
 
-    private bool FilterItem(object obj)
+    /// <summary>Filter + fuzzy-rank into the bound collection.</summary>
+    private void ApplyQuery(string? query)
     {
-        if (obj is not ClipItem item) return false;
-        if (string.IsNullOrWhiteSpace(SearchBox.Text)) return true;
-        return ClipboardSearch.Apply(new[] { item }, SearchBox.Text).Any();
+        _items.Clear();
+        foreach (var it in ClipboardSearch.Search(_all, query)) _items.Add(it);
+
+        bool querying = !string.IsNullOrWhiteSpace(query);
+        bool hasAny = _items.Count > 0;
+        EmptyState.Visibility = hasAny ? Visibility.Collapsed : Visibility.Visible;
+        ResultsList.Visibility = hasAny ? Visibility.Visible : Visibility.Collapsed;
+        EmptyText.Text = querying
+            ? "未找到匹配项"
+            : "暂无历史记录，复制任意内容后即会出现";
     }
 
     private void OnSourceInitialized(object? sender, EventArgs e)
@@ -103,17 +104,15 @@ public partial class PopupWindow : Window
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        _view.Refresh();
+        ApplyQuery(SearchBox.Text);
         SelectFirst();
     }
 
     private void SelectFirst()
     {
-        if (_view.IsEmpty) { ResultsList.UnselectAll(); return; }
+        if (_items.Count == 0) { ResultsList.UnselectAll(); return; }
         ResultsList.SelectedIndex = 0;
     }
-
-    private void SearchBox_PreviewKeyDown(object sender, KeyEventArgs e) { /* handled by window preview */ }
 
     // ---- keyboard ----
 
@@ -144,7 +143,13 @@ public partial class PopupWindow : Window
                 ActivateSelected(paste: !shift && _settings.AutoPaste, plainTextOnly: ctrl);
                 e.Handled = true;
                 return;
-            case Key.Delete:
+            case Key.Delete when ctrl && shift:
+                // Maccy's Option+Cmd+Delete: clear everything except pinned.
+                _history.Clear(false);
+                Reload();
+                e.Handled = true;
+                return;
+            case Key.Delete when !ctrl && !shift && !alt:
                 DeleteSelected();
                 e.Handled = true;
                 return;
@@ -158,9 +163,10 @@ public partial class PopupWindow : Window
         if (ctrl && !alt && key >= Key.D1 && key <= Key.D9)
         {
             int idx = key - Key.D1;
-            if (idx < _view.Count && _view.GetItemAt(idx) is ClipItem item)
+            if (idx < _items.Count && _items[idx] is { } item)
                 Activate(item, paste: !shift && _settings.AutoPaste, plainTextOnly: false);
             e.Handled = true;
+            return;
         }
 
         base.OnPreviewKeyDown(e);
@@ -168,11 +174,11 @@ public partial class PopupWindow : Window
 
     private void MoveSelection(int delta)
     {
-        if (_view.Count == 0) return;
+        if (_items.Count == 0) return;
         int idx = ResultsList.SelectedIndex < 0 ? 0 : ResultsList.SelectedIndex + delta;
-        idx = Math.Clamp(idx, 0, _view.Count - 1);
+        idx = Math.Clamp(idx, 0, _items.Count - 1);
         ResultsList.SelectedIndex = idx;
-        ResultsList.ScrollIntoView(_view.GetItemAt(idx));
+        ResultsList.ScrollIntoView(_items[idx]);
     }
 
     private void ActivateSelected(bool paste, bool plainTextOnly)
@@ -192,9 +198,11 @@ public partial class PopupWindow : Window
         if (ResultsList.SelectedItem is not ClipItem item) return;
         int idx = ResultsList.SelectedIndex;
         _history.Delete(item.Id);
-        _items.Remove(item);
-        _view.Refresh();
-        if (_view.Count > 0) ResultsList.SelectedIndex = Math.Min(Math.Max(0, idx), _view.Count - 1);
+        Reload();
+        if (_items.Count > 0)
+        {
+            ResultsList.SelectedIndex = Math.Min(Math.Max(0, idx), _items.Count - 1);
+        }
         SearchBox.Focus();
     }
 
@@ -204,22 +212,60 @@ public partial class PopupWindow : Window
         _history.TogglePin(item.Id);
         var query = SearchBox.Text;
         Reload();
-        SearchBox.Text = query;
+        SearchBox.Focus();
+    }
+
+    // ---- row hover actions ----
+
+    private void RowPin_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ClipItem item })
+        {
+            _history.TogglePin(item.Id);
+            Reload();
+            SearchBox.Focus();
+        }
+        e.Handled = true;
+    }
+
+    private void RowDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ClipItem item })
+        {
+            int idx = _items.IndexOf(item);
+            _history.Delete(item.Id);
+            Reload();
+            if (_items.Count > 0)
+                ResultsList.SelectedIndex = Math.Min(Math.Max(0, idx), _items.Count - 1);
+            SearchBox.Focus();
+        }
+        e.Handled = true;
     }
 
     // ---- mouse ----
 
-    private void ResultsList_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
-
+    // Maccy mouse semantics: click copies, Alt+click pastes, Alt+Shift+click pastes plain text.
     private void ResultsList_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        // Single click only moves selection; activation needs an explicit double-click.
+        var src = e.OriginalSource as DependencyObject;
+        if (FindAncestor<System.Windows.Controls.Primitives.ButtonBase>(src) is not null) return;
+        if (FindAncestor<ListBoxItem>(src)?.DataContext is not ClipItem item) return;
+
+        bool alt = (Keyboard.Modifiers & ModifierKeys.Alt) != 0;
+        bool shift = (Keyboard.Modifiers & ModifierKeys.Shift) != 0;
+        Activate(item, paste: alt, plainTextOnly: alt && shift);
+        e.Handled = true;
     }
 
-    private void ResultsList_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
+    private static T? FindAncestor<T>(DependencyObject? d) where T : DependencyObject
     {
-        if (ResultsList.SelectedItem is ClipItem item)
-            Activate(item, paste: _settings.AutoPaste, plainTextOnly: false);
+        while (d is not null)
+        {
+            if (d is T match) return match;
+            d = System.Windows.Media.VisualTreeHelper.GetParent(d)
+                ?? (d as FrameworkElement)?.Parent;
+        }
+        return null;
     }
 
     protected override void OnDeactivated(EventArgs e)
