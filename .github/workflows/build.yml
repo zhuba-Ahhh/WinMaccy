@@ -16,10 +16,10 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup .NET 8 SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
 
@@ -41,14 +41,19 @@ jobs:
       - name: Stage release
         shell: pwsh
         run: |
+          # GITHUB_REF_NAME is "1/merge" on pull requests, so sanitize it:
+          # tags use the tag name, everything else uses the short commit SHA.
+          $name = if ($env:GITHUB_REF -like 'refs/tags/*') { $env:GITHUB_REF_NAME } else { $env:GITHUB_SHA.Substring(0, 7) }
+          $name = $name -replace '[^A-Za-z0-9._-]', '-'
+          "package name: WinMaccy-$name-win-x64" | Write-Host
           New-Item -ItemType Directory -Force -Path stage/WinMaccy | Out-Null
           Copy-Item publish/WinMaccy.exe stage/WinMaccy/
           Copy-Item README.md stage/WinMaccy/
-          Compress-Archive -Path stage/WinMaccy/* -DestinationPath WinMaccy-$($env:GITHUB_REF_NAME)-win-x64.zip
-          Copy-Item publish/WinMaccy.exe WinMaccy-$($env:GITHUB_REF_NAME)-win-x64.exe
+          Compress-Archive -Path stage/WinMaccy/* -DestinationPath "WinMaccy-$name-win-x64.zip"
+          Copy-Item publish/WinMaccy.exe "WinMaccy-$name-win-x64.exe"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: WinMaccy-win-x64
           path: |
