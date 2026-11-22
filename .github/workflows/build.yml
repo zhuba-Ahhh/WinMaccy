@@ -8,6 +8,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Default GITHUB_TOKEN is read-only; the release step needs contents: write.
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
