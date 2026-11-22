@@ -4,6 +4,8 @@ Windows 上的 [Maccy](https://github.com/p0deje/Maccy) 风格剪贴板历史管
 
 **下载**：见 [Releases](https://github.com/zhuba-Ahhh/WinMaccy/releases)，解压即用（自包含单文件，免装运行时）。
 
+[▶ 观看演示视频](https://github.com/zhuba-Ahhh/WinMaccy/releases/latest/download/winmaccy-demo.mp4)（AI 概念演示）
+
 ## 使用
 
 默认快捷键 **Ctrl + Shift + C** 呼出搜索窗，输入即过滤，回车粘贴。
