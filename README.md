@@ -5,7 +5,7 @@
 ## 系统要求
 
 - Windows 10 1809 (17763) 及以上 / Windows 11，64 位
-- 本版本为**自包含单文件**（约 140 MB，内置 .NET 8 运行时），无需安装 .NET，解压即用
+- Release 页面提供**自包含单文件**（约 140 MB，内置 .NET 8 运行时），无需安装 .NET，解压即用
 
 ## 快速上手
 
@@ -66,3 +66,43 @@
 
 - 按快捷键无反应：可能被其他程序占用（全局热键先到先得），在设置里换一个组合键；注册失败时设置保存会弹出提示。
 - 需要诊断日志时，设置环境变量 `WINMACCY_DEBUG=1` 后启动，日志写在数据目录的 `debug.log`。
+
+## 从源码构建
+
+需要 [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)（Windows），无第三方 NuGet 依赖：
+
+```powershell
+# 调试构建
+dotnet build src/WinMaccy/WinMaccy.csproj -c Debug
+
+# 发布自包含单文件（产物在 publish\WinMaccy.exe）
+dotnet publish src/WinMaccy/WinMaccy.csproj -c Release -r win-x64 `
+  --self-contained true -p:PublishSingleFile=true `
+  -p:IncludeNativeLibrariesForSelfExtract=true
+```
+
+推送 `v*` 标签时 GitHub Actions 会自动构建并发布 Release（见 `.github/workflows/build.yml`）。
+
+## 仓库结构
+
+```
+WinMaccy/
+├─ src/WinMaccy/
+│  ├─ App.xaml(.cs)        # 组合根：单实例、托盘、热键/剪贴板事件装配
+│  ├─ Models/              # ClipItem / AppSettings / HotKeyConfig 等数据模型
+│  ├─ Storage/             # JSON 存储、便携模式路径、历史去重与裁剪
+│  ├─ Services/            # 剪贴板捕获、粘贴模拟、搜索、主题、开机自启
+│  ├─ Interop/             # Win32 P/Invoke 与隐藏消息窗口
+│  ├─ UI/                  # PopupWindow（搜索浮窗）与 SettingsWindow
+│  ├─ Themes/              # 浅色 / 深色资源字典
+│  ├─ Converters/          # WPF 值转换器
+│  └─ Assets/app.ico
+├─ .github/workflows/      # CI：构建 + 标签发布 Release
+├─ WinMaccy.sln
+├─ LICENSE                 # MIT
+└─ README.md
+```
+
+## License
+
+[MIT](LICENSE)。本项目参考了开源软件 [Maccy](https://github.com/p0deje/Maccy)（MIT）的交互设计。
