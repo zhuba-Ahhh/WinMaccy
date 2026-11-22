@@ -2,9 +2,11 @@
 
 Windows 上的 [Maccy](https://github.com/p0deje/Maccy) 风格剪贴板历史管理器。轻量、开源、纯本地、不联网，C# / WPF / .NET 8 原生实现，零第三方依赖。
 
-**下载**：见 [Releases](https://github.com/zhuba-Ahhh/WinMaccy/releases)，解压即用（自包含单文件，免装运行时）。
+**下载**：见 [Releases](https://github.com/zhuba-Ahhh/WinMaccy/releases)，下载 `WinMaccy.exe` 单文件即用（自包含，免装运行时）。
 
-[▶ 观看演示视频](https://github.com/zhuba-Ahhh/WinMaccy/releases/latest/download/winmaccy-demo.mp4)（AI 概念演示）
+![WinMaccy 演示](docs/winmaccy-demo.gif)
+
+<sub>演示为 AI 概念动画，高清 MP4 见 Release 附件 `winmaccy-demo.mp4`。</sub>
 
 ## 使用
 

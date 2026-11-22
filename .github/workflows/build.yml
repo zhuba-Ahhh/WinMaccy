@@ -45,13 +45,14 @@ jobs:
           Copy-Item publish/WinMaccy.exe stage/WinMaccy/
           Copy-Item README.md stage/WinMaccy/
           Compress-Archive -Path stage/WinMaccy/* -DestinationPath WinMaccy-$($env:GITHUB_REF_NAME)-win-x64.zip
+          Copy-Item publish/WinMaccy.exe WinMaccy-$($env:GITHUB_REF_NAME)-win-x64.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: WinMaccy-win-x64
           path: |
-            publish/WinMaccy.exe
+            WinMaccy-*.exe
             WinMaccy-*.zip
 
       - name: GitHub Release
@@ -59,6 +60,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
+            WinMaccy-*.exe
             WinMaccy-*.zip
             docs/winmaccy-demo.mp4
+          overwrite_files: true
           generate_release_notes: true
