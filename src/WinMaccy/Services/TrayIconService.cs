@@ -74,7 +74,12 @@ public sealed class TrayIconService : IDisposable
             Visible = true,
             ContextMenuStrip = _menu
         };
-        // Double-click / single-click both open the popup like Maccy's menu bar.
+        // Single left click and double click both open the popup like Maccy's
+        // menu bar item. (Right click is handled automatically: it opens _menu.)
+        _icon.MouseClick += (_, e) =>
+        {
+            if (e.Button == MouseButtons.Left) onOpen();
+        };
         _icon.DoubleClick += (_, _) => onOpen();
     }
 

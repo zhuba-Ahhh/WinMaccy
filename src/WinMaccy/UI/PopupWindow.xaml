@@ -234,19 +234,50 @@
                 </StackPanel>
             </Grid>
 
-            <!-- footer hints -->
+            <!-- footer hints: compact key-cap style, primary actions only -->
             <Border x:Name="FooterBorder" Grid.Row="2" BorderThickness="0,1,0,0"
-                    BorderBrush="{DynamicResource BorderSubtleBrush}" Padding="14,7">
-                <WrapPanel>
-                    <TextBlock Style="{StaticResource Hint}" Text="Enter 粘贴" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Shift+Enter 仅复制" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Ctrl+Enter 纯文本" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Alt+P 固定" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Del 删除" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Ctrl+Shift+Del 清空" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Ctrl+1..9 快选" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Esc 关闭" />
-                </WrapPanel>
+                    BorderBrush="{DynamicResource BorderSubtleBrush}" Padding="14,6">
+                <Border.Resources>
+                    <Style x:Key="Cap" TargetType="Border">
+                        <Setter Property="CornerRadius" Value="4" />
+                        <Setter Property="Padding" Value="6,1" />
+                        <Setter Property="Margin" Value="0,0,5,0" />
+                        <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                    </Style>
+                    <Style x:Key="CapText" TargetType="TextBlock">
+                        <Setter Property="FontSize" Value="10" />
+                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                    </Style>
+                    <Style x:Key="CapLabel" TargetType="TextBlock">
+                        <Setter Property="FontSize" Value="11" />
+                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                        <Setter Property="Margin" Value="0,0,18,0" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                    </Style>
+                </Border.Resources>
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource Cap}"><TextBlock Style="{StaticResource CapText}" Text="Enter" /></Border>
+                        <TextBlock Style="{StaticResource CapLabel}" Text="粘贴" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource Cap}"><TextBlock Style="{StaticResource CapText}" Text="⇧ Enter" /></Border>
+                        <TextBlock Style="{StaticResource CapLabel}" Text="复制" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource Cap}"><TextBlock Style="{StaticResource CapText}" Text="Del" /></Border>
+                        <TextBlock Style="{StaticResource CapLabel}" Text="删除" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource Cap}"><TextBlock Style="{StaticResource CapText}" Text="Alt P" /></Border>
+                        <TextBlock Style="{StaticResource CapLabel}" Text="固定" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource Cap}"><TextBlock Style="{StaticResource CapText}" Text="Esc" /></Border>
+                        <TextBlock Style="{StaticResource CapLabel}" Margin="0" Text="关闭" />
+                    </StackPanel>
+                </StackPanel>
             </Border>
         </Grid>
     </Border>
